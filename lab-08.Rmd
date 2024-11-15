@@ -1,6 +1,6 @@
 ---
 title: "Lab 08 - Predicting rain"
-author: "INSERT NAME HERE"
+author: "Navya Bhamidipati"
 date: "`r Sys.Date()`"
 output: html_document
 ---
@@ -46,13 +46,16 @@ weather %>%
 1. Are there any missing values in our variable of interest `RainTomorrow`? If so, we filter them out and save the new dataset as `weather_noNA`. 
 
 ```{r}
-
+weather_noNA <- weather %>%
+  drop_na()
 ```
 
 2. Which cities are the ones with more rain days? To do this, let's analyze the `RainToday` variable. 
 
 ```{r}
-
+weather%>%
+  count(RainToday = "Yes", Location)%>%
+  arrange(desc(n))
 ```
 
 # Exercise 2: Logistic regression
@@ -60,8 +63,7 @@ weather %>%
 We will focus our analysis on the city of `Portland`.
 Remove `eval=FALSE` from below once you have defined the object `weather_noNA`.
 
-```{r eval=FALSE}
-# remove eval=FALSE
+```{r}
 weather_Portland <- weather_noNA %>%
   filter(Location == "Portland")
 ```
@@ -69,7 +71,11 @@ weather_Portland <- weather_noNA %>%
 1. Try to predict `RainTomorrow` by fitting a linear regression using the variable `RainToday` and print the output using `tidy()`.
 
 ```{r}
+Portland_fit <- logistic_reg() %>%
+  set_engine("glm") %>%
+  fit(RainTomorrow ~ RainToday, data = weather_Portland, family = "binomial")
 
+tidy(Portland_fit)
 ```
 
 2. For each point in our dataset, what are the fitted probabilities that tomorrow it's going to rain? 
@@ -77,7 +83,11 @@ weather_Portland <- weather_noNA %>%
 - Plot them using an appropriate visualization. What is peculiar about them?
 
 ```{r}
-
+Portland_pred <- predict(
+ Portland_fit, weather_Portland, type = "prob"
+)%>%
+  bind_cols(weather_Portland %>% select(Date, Location))%>%
+print()
 ```
 
 > Hint: how many unique values do the predicted probabilities take? What do these value correspond to?
